@@ -168,14 +168,14 @@
   [
     #box(width: 100%, height: 100%, inset: (y: 1em))[
       #grid(
-        columns: (1fr, 1fr, 1fr),
-        align: (left + horizon, center + horizon, right + horizon),
+        columns: (1fr, 1fr),
+        align: (left + horizon, right + horizon),
         // Left: Date
         [
           #set par(leading: 0pt)
           #set text(top-edge: "cap-height", bottom-edge: "baseline")
           #context {
-            let day-text = text(size: 11em, weight: 900)[#today_date.day]
+            let day-text = text(size: 10em, weight: 900)[#today_date.day]
             let day-width = measure(day-text).width
 
             scale_to_width(day-width, text(size: 3em, weight: "light")[#today_date.weekday])
@@ -185,40 +185,29 @@
             scale_to_width(day-width, text(size: 2.5em, weight: "light")[#upper(today_date.month)])
           }
         ],
-        // Center: Icon + Condition
-        [
-          #align(center)[
-            #image(weather_icon(current_code), width: 6em)
-            #v(-0.25em)
-            #text(size: 1em)[#weather_desc(current_code)]
-          ]
-        ],
         // Right: Temperature
         [
           #align(right)[
             #set par(leading: 0pt)
             #set text(top-edge: "cap-height", bottom-edge: "baseline")
             #context {
-              let temp-text = text(size: 11em, weight: 900)[#current_temp_f°]
-
-              hide(text(size: 3em)[X])
-              linebreak()
-
-              grid(
-                columns: (auto, auto),
-                column-gutter: 0.4em,
-                align: (right + horizon, left),
-                // Left column: Hi/Lo stacked, vertically centered
-                [
-                  #set text(size: 2.5em, weight: "light")
-                  #set par(leading: 0.3em)
-                  Hi #today_high°
-                  #linebreak()
-                  Lo #today_low°
-                ],
-                // Right column: Big temperature
-                temp-text
-              )
+              let temp = text(size: 10em, weight: 900)[#current_temp_f°]
+              let temp-height = measure(temp).height
+              // Hi/Lo box positioned to the left, vertically centered
+              box[
+                #place(left + horizon, dx: -6em)[
+                  #box(height: temp-height)[
+                    #align(horizon)[
+                      #set text(size: 2.5em, weight: "light")
+                      #set par(leading: 0.3em)
+                      Hi #today_high°
+                      #linebreak()
+                      Lo #today_low°
+                    ]
+                  ]
+                ]
+                #temp
+              ]
             }
           ]
         ],

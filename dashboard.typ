@@ -198,10 +198,28 @@
           #align(right)[
             #set par(leading: 0pt)
             #set text(top-edge: "cap-height", bottom-edge: "baseline")
-            #text(size: 4.5em, weight: "bold")[#current_temp_f°F]\
-            #text(size: 1.5em, fill: luma(80))[#current_temp_c°C]\
-            #v(0.25em)
-            #text(size: 1.125em)[H #today_high° #h(0.5em) L #today_low°]
+            #context {
+              let temp-text = text(size: 11em, weight: 900)[#current_temp_f°]
+
+              hide(text(size: 3em)[X])
+              linebreak()
+
+              grid(
+                columns: (auto, auto),
+                column-gutter: 0.4em,
+                align: (right + horizon, left),
+                // Left column: Hi/Lo stacked, vertically centered
+                [
+                  #set text(size: 2.5em, weight: "light")
+                  #set par(leading: 0.3em)
+                  Hi #today_high°
+                  #linebreak()
+                  Lo #today_low°
+                ],
+                // Right column: Big temperature
+                temp-text
+              )
+            }
           ]
         ],
       )

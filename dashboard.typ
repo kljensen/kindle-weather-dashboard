@@ -11,7 +11,7 @@
 #let base-font-size = 16pt
 
 #set text(
-  font: ("Helvetica Neue", "Helvetica", "Arial"),
+  font: ("Myriad Pro", "Helvetica Neue", "Helvetica", "Arial"),
   size: base-font-size,
   fill: black,
 )
@@ -131,6 +131,15 @@
   )
 }
 
+// Helper: Scale content horizontally to match a target width
+#let scale_to_width(target-width, content) = {
+  box(context {
+    let content-width = measure(content).width
+    let ratio = target-width / content-width
+    scale(x: ratio * 100%, origin: left + horizon)[#content]
+  })
+}
+
 // Extract data
 #let current_temp_f = calc.round(data.current.temperature_2m)
 #let current_temp_c = f_to_c(data.current.temperature_2m)
@@ -166,14 +175,14 @@
           #set par(leading: 0pt)
           #set text(top-edge: "cap-height", bottom-edge: "baseline")
           #context {
-            // Measure the width of the day number to align other elements
-            let day-text = text(size: 4.5em, weight: "bold")[#today_date.day]
+            let day-text = text(size: 11em, weight: 900)[#today_date.day]
             let day-width = measure(day-text).width
-            box(width: day-width)[#text(size: 1.5em, weight: "medium")[#today_date.weekday]]
+
+            scale_to_width(day-width, text(size: 3em, weight: "light")[#today_date.weekday])
             linebreak()
             day-text
             linebreak()
-            box(width: day-width)[#text(size: 1.25em, weight: "light")[#today_date.month]]
+            scale_to_width(day-width, text(size: 2.5em, weight: "light")[#upper(today_date.month)])
           }
         ],
         // Center: Icon + Condition

@@ -175,7 +175,7 @@
           #set par(leading: 0pt)
           #set text(top-edge: "cap-height", bottom-edge: "baseline")
           #context {
-            let day-text = text(size: 10em, weight: 900)[#today_date.day]
+            let day-text = box(inset: (y: 10pt))[#text(size: 10em, weight: 900)[#today_date.day]]
             let day-width = measure(day-text).width
 
             scale_to_width(day-width, text(size: 3em, weight: "light")[#today_date.weekday])
@@ -185,31 +185,25 @@
             scale_to_width(day-width, text(size: 2.5em, weight: "light")[#upper(today_date.month)])
           }
         ],
-        // Right: Temperature
+        // Right: Temperature (mirrors left structure)
         [
-          #align(right)[
-            #set par(leading: 0pt)
-            #set text(top-edge: "cap-height", bottom-edge: "baseline")
-            #context {
-              let temp = text(size: 10em, weight: 900)[#current_temp_f°]
-              let temp-height = measure(temp).height
-              // Hi/Lo box positioned to the left, vertically centered
-              box[
-                #place(left + horizon, dx: -6em)[
-                  #box(height: temp-height)[
-                    #align(horizon)[
-                      #set text(size: 2.5em, weight: "light")
-                      #set par(leading: 0.3em)
-                      Hi #today_high°
-                      #linebreak()
-                      Lo #today_low°
-                    ]
-                  ]
-                ]
-                #temp
+          #set par(leading: 0pt)
+          #set text(top-edge: "cap-height", bottom-edge: "baseline")
+          #context {
+            let temp = box(inset: (y: 10pt))[#text(size: 10em, weight: 900)[#current_temp_f]#text(size: 10em, weight: "light")[°]]
+            let temp-width = measure(temp).width
+
+            // Spacer matching Saturday's height
+            hide(scale_to_width(temp-width, text(size: 3em, weight: "light")[Saturday]))
+            linebreak()
+            temp
+            linebreak()
+            box(width: temp-width)[
+              #align(left)[
+                #text(size: 2.5em, weight: "light", stretch: 75%)[Hi #today_high° #sym.dot.c Lo #today_low°]
               ]
-            }
-          ]
+            ]
+          }
         ],
       )
     ]

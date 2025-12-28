@@ -1,0 +1,106 @@
+{
+  "name": "kindle-weather-dashboard",
+
+  // Build configuration
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  // User configuration (matches Dockerfile)
+  "remoteUser": "vscode",
+  "containerUser": "vscode",
+
+  // ==============================================================================
+  // VS CODE CUSTOMIZATION
+  // ==============================================================================
+  "customizations": {
+    "vscode": {
+      // Extensions to install in the container
+      "extensions": [
+        // Git
+        "eamodio.gitlens",
+
+        // Typst support
+        "nvarner.typst-lsp",
+
+        // Utilities
+        "editorconfig.editorconfig"
+      ],
+
+      // VS Code settings
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.eol": "\n",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+
+  // ==============================================================================
+  // MOUNTS & VOLUMES
+  // ==============================================================================
+  "mounts": [
+    // Use Docker volume for Claude credentials - no permission issues, persists across rebuilds
+    "source=kindle-weather-claude-credentials,target=/home/vscode/.claude,type=volume",
+
+    // Mount host Codex credentials for shared authentication
+    "source=${localEnv:HOME}/.codex,target=/home/vscode/.codex,type=bind",
+
+    // Mount SSH keys (read-only) for git operations
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,readonly",
+
+    // Mount git config (read-only)
+    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,readonly",
+
+    // Mount GitHub CLI config (read-only) for gh authentication
+    "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind,readonly",
+
+    // Mount SSH agent socket for 1Password integration
+    "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
+  ],
+
+  // ==============================================================================
+  // POST-CREATE COMMANDS
+  // ==============================================================================
+  // Fix ownership of volume mounts so vscode user can write to them
+  "postCreateCommand": "sudo chown -R vscode:vscode ~/.claude || true",
+
+  // ==============================================================================
+  // ENVIRONMENT VARIABLES
+  // ==============================================================================
+  "remoteEnv": {
+    // API keys for AI tools
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+    "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}",
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
+
+    // SSH agent socket for git operations (points to relayed socket)
+    "SSH_AUTH_SOCK": "/tmp/ssh-agent-relay.sock",
+
+    // MCP tools
+    "KAGI_API_KEY": "${localEnv:KAGI_API_KEY}",
+    "TAVILY_API_KEY": "${localEnv:TAVILY_API_KEY}"
+  },
+
+  // ==============================================================================
+  // PORTS
+  // ==============================================================================
+  // Forward ports from container to host
+  "forwardPorts": [8080],
+
+  // Port attributes
+  "portsAttributes": {
+    "8080": {
+      "label": "Dashboard Server",
+      "onAutoForward": "notify",
+      "protocol": "http"
+    }
+  },
+
+  // ==============================================================================
+  // LIFECYCLE HOOKS
+  // ==============================================================================
+  // Setup SSH agent relay for 1Password integration (runs every time container starts)
+  "postStartCommand": "sudo rm -f /tmp/ssh-agent-relay.sock && sudo nohup socat UNIX-LISTEN:/tmp/ssh-agent-relay.sock,fork,mode=666 UNIX-CONNECT:/ssh-agent </dev/null >/dev/null 2>&1 &"
+}

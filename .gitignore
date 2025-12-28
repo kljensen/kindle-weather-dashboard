@@ -1,0 +1,16 @@
+.claude
+dashboard.png
+.mcp.json
+# Generated files
+tmp/
+output/
+
+# Environment
+.env
+
+# OS files
+.DS_Store
+
+# Editor files
+*.swp
+*~

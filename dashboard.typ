@@ -312,13 +312,10 @@
           ]
 
           // Temperature line overlay using cetz
-          #place(top + left)[
-            #context {
-              let chart_w = measure(box(width: 100%)).width
-              let chart_h = measure(box(height: 100%)).height
-              // Use fixed dimensions for the canvas
-              let w = 710 // full width in pt
-              let h = 120 // approximate height in pt
+          #place(bottom + left)[
+            #layout(size => {
+              let w = size.width / 1pt
+              let h = size.height / 1pt
 
               canvas(length: 1pt, {
                 // Draw temperature line
@@ -372,7 +369,7 @@
                   anchor: "south",
                 )
               })
-            }
+            })
           ]
         ]
       ]

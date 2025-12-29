@@ -357,18 +357,20 @@
       // X-axis labels (12-hour format)
       #v(0.25em)
       #let hour_labels = (
-        (0, "12am"), (3, "3am"), (6, "6am"), (9, "9am"),
-        (12, "12pm"), (15, "3pm"), (18, "6pm"), (21, "9pm"),
+        (0, "12am"), (6, "6am"), (12, "12pm"), (18, "6pm"),
       )
-      #stack(
-          dir: ltr,
-          spacing: 0pt,
-          ..hour_labels.map(((h, label)) => {
-            box(width: bar_width * 3, align(center)[
-              #text(size: 0.7em)[#label]
-            ])
-          }),
-        )
+      #box(width: 100%)[
+        #stack(
+            dir: ltr,
+            spacing: 0pt,
+            ..hour_labels.map(((h, label)) => {
+              box(width: bar_width * 6, align(left)[
+                #text(size: 0.7em)[#label]
+              ])
+            }),
+          )
+        #place(right + horizon)[#text(size: 0.7em)[12am]]
+      ]
     ]
     #line(length: 100%, stroke: 0.5pt + black)
   ],

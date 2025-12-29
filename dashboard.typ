@@ -6,7 +6,7 @@
 #set page(
   width: 758pt,
   height: 1024pt,
-  margin: 24pt,
+  margin: (top: 32pt, left: 32pt, right: 32pt, bottom: 32pt),
   fill: white,
 )
 
@@ -180,15 +180,15 @@
 // Calculate max precipitation for scaling (use at least 0.5mm to avoid division issues)
 #let precip_max = calc.max(calc.max(..hourly_precip), 0.5)
 
-// Days 1-7 (tomorrow through 7 days out)
-#let forecast_days = range(1, 8)
+// Days 0-6 (today through 6 days out)
+#let forecast_days = range(0, 7)
 
 // ============================================================================
 // MAIN LAYOUT - Vertical Grid
 // ============================================================================
 #grid(
   columns: (1fr,),
-  rows: (1fr, 1.4fr, 1.4fr, auto),
+  rows: (1fr, 1fr, 2fr),
   row-gutter: 0pt,
 
   // ============================================================================
@@ -251,7 +251,6 @@
         ],
       )
     ]
-    #line(length: 100%, stroke: 0.5pt + black)
   ],
 
   // ============================================================================
@@ -259,25 +258,6 @@
   // ============================================================================
   [
     #box(width: 100%, height: 100%, inset: (top: 1em))[
-      // Header with title and legend
-      #grid(
-        columns: (1fr, auto),
-        align: (left, right),
-        text(size: 0.875em, weight: "medium")[TODAY],
-        [
-          #text(size: 0.7em)[
-            #box(width: 0.6em, height: 0.6em, fill: black, baseline: 0.1em)
-            Rain
-            #h(0.5em)
-            #box(width: 0.6em, height: 0.6em, fill: luma(120), baseline: 0.1em)
-            Snow
-            #h(0.5em)
-            #box(width: 1em, height: 0pt, stroke: 1.5pt + black, baseline: 0.2em)
-            Temp
-          ]
-        ],
-      )
-      #v(0.5em)
 
       #let bar_width = 100% / 24
 
@@ -397,45 +377,26 @@
   // 7-DAY FORECAST SECTION
   // ============================================================================
   [
-    #box(width: 100%, height: 100%, inset: (top: 1em))[
-      #text(size: 0.875em, weight: "medium")[7-DAY FORECAST]
-      #v(0.75em)
-
+    #box(width: 100%, height: 100%, inset: (y: 1.5em))[
       #grid(
-        columns: (1fr,) * 7,
-        rows: (auto, 1fr, auto, auto),
-        align: center,
-        row-gutter: 0.5em,
-        // Day names
-        ..forecast_days.map(i => {
-          text(size: 0.875em, weight: "medium")[#day_name(data.daily.time.at(i))]
-        }),
-        // Icons
-        ..forecast_days.map(i => {
-          image(weather_icon(data.daily.weather_code.at(i)), width: 2.75em)
-        }),
-        // High temps
+        columns: (3em, 1fr, auto, auto),
+        rows: (1fr,) * 7,
+        align: (left + horizon, left + horizon, right + horizon, right + horizon),
+        column-gutter: 1em,
+        row-gutter: 0.25em,
+        // Each row: Day name, Icon, High temp, Low temp
         ..forecast_days.map(i => {
           let high = calc.round(data.daily.temperature_2m_max.at(i))
-          text(size: 1em, weight: "bold")[#high°]
-        }),
-        // Low temps
-        ..forecast_days.map(i => {
           let low = calc.round(data.daily.temperature_2m_min.at(i))
-          text(size: 0.875em, fill: luma(100))[#low°]
-        }),
+          (
+            text(size: 0.875em, weight: "medium")[#day_name(data.daily.time.at(i))],
+            image(weather_icon(data.daily.weather_code.at(i)), height: 100%),
+            text(size: 1em, weight: "bold")[#high°],
+            text(size: 0.875em, fill: luma(100))[#low°],
+          )
+        }).flatten(),
       )
     ]
   ],
 
-  // ============================================================================
-  // FOOTER
-  // ============================================================================
-  [
-    #align(center)[
-      #text(size: 0.7em, fill: luma(120))[
-        Updated: #datetime.today().display("[month repr:short] [day], [year]")
-      ]
-    ]
-  ],
 )

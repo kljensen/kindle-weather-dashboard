@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <g transform="matrix(1,0,0,1,0.4,-1.248)">
+    <g fill="#999999" transform="matrix(1,0,0,1,0.4,-1.248)">
         <path d="M20.864,15.84C20.64,15.84 20.384,15.744 20.224,15.584C19.872,15.232 19.872,14.656 20.224,14.304L20.512,14.016C20.352,13.856 20.224,13.632 20.224,13.376C20.224,12.864 20.608,12.48 21.12,12.48L22.432,12.48C22.912,12.48 23.36,12.864 23.392,13.376L23.392,14.688C23.392,15.168 22.976,15.584 22.464,15.584C22.208,15.584 21.952,15.488 21.792,15.296L21.504,15.584C21.312,15.744 21.088,15.84 20.864,15.84Z"/>
     </g>
     <g transform="matrix(1,0,0,1,0.4,-1.248)">

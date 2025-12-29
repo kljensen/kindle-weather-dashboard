@@ -1,6 +1,8 @@
 // Kindle Weather Dashboard
 // 758x1024 pixels for Kindle e-ink display
 
+#import "@preview/cetz:0.3.2": canvas, draw
+
 #set page(
   width: 758pt,
   height: 1024pt,
@@ -62,6 +64,17 @@
   } else {
     "icons/sun.svg"
   }
+}
+
+// Helper: Determine if precipitation is snow based on WMO code
+#let is_snow(code) = {
+  // Snow codes: 71-77 (snow), 85-86 (snow showers)
+  code >= 71 and code <= 77 or code == 85 or code == 86
+}
+
+// Helper: Get precipitation fill based on weather code
+#let precip_fill(code) = {
+  if is_snow(code) { luma(120) } else { black }
 }
 
 // Helper: Get weather description from WMO code
@@ -148,8 +161,19 @@
 #let today_low = calc.round(data.daily.temperature_2m_min.at(0))
 #let today_date = format_date(data.current.time)
 
-// Get hourly precip for today (first 24 hours)
-#let hourly_precip = data.hourly.precipitation_probability.slice(0, 24)
+// Get hourly data for today (first 24 hours)
+#let hourly_precip_prob = data.hourly.precipitation_probability.slice(0, 24)
+#let hourly_precip = data.hourly.precipitation.slice(0, 24)
+#let hourly_temps = data.hourly.temperature_2m.slice(0, 24)
+#let hourly_codes = data.hourly.weather_code.slice(0, 24)
+
+// Calculate temperature range for scaling
+#let temp_min = calc.min(..hourly_temps)
+#let temp_max = calc.max(..hourly_temps)
+#let temp_range = calc.max(temp_max - temp_min, 10) // At least 10 degree range
+
+// Calculate max precipitation for scaling (use at least 0.5mm to avoid division issues)
+#let precip_max = calc.max(calc.max(..hourly_precip), 0.5)
 
 // Days 1-7 (tomorrow through 7 days out)
 #let forecast_days = range(1, 8)
@@ -221,43 +245,112 @@
   ],
 
   // ============================================================================
-  // PRECIPITATION SECTION
+  // HOURLY FORECAST SECTION (Precipitation + Temperature)
   // ============================================================================
   [
     #box(width: 100%, height: 100%, inset: (top: 1em))[
-      #text(size: 0.875em, weight: "medium")[PRECIPITATION PROBABILITY]
+      // Header with title and legend
+      #grid(
+        columns: (1fr, auto),
+        align: (left, right),
+        text(size: 0.875em, weight: "medium")[NEXT 24 HOURS],
+        [
+          #text(size: 0.7em)[
+            #box(width: 0.6em, height: 0.6em, fill: black, baseline: 0.1em)
+            Rain
+            #h(0.5em)
+            #box(width: 0.6em, height: 0.6em, fill: luma(120), baseline: 0.1em)
+            Snow
+            #h(0.5em)
+            #box(width: 1em, height: 0pt, stroke: 1.5pt + black, baseline: 0.2em)
+            Temp
+          ]
+        ],
+      )
       #v(0.5em)
 
       #let bar_width = 100% / 24
 
-      // Bar chart container - fills remaining space
+      // Combined chart container - use block with 1fr, wrap content in it
       #block(width: 100%, height: 1fr)[
-        #align(bottom)[
-          #stack(dir: ltr, spacing: 0pt, ..hourly_precip
-            .enumerate()
-            .map(((i, prob)) => {
-              box(
-                width: bar_width,
-                height: prob * 1%,
-                align(bottom)[
-                  #rect(width: 80%, height: 100%, fill: black)
-                ],
-              )
-            }))
+        // Temperature labels on right side
+        #place(top + right)[
+          #text(size: 0.7em, fill: luma(80))[#calc.round(temp_max)°]
+        ]
+        #place(bottom + right, dy: -1.5em)[
+          #text(size: 0.7em, fill: luma(80))[#calc.round(temp_min)°]
+        ]
+
+        // Chart area (with padding for temp labels)
+        #box(width: 100% - 2em, height: 100%)[
+          // Precipitation bars (from bottom)
+          #align(bottom)[
+            #stack(dir: ltr, spacing: 0pt, ..hourly_precip
+              .enumerate()
+              .map(((i, p)) => {
+                let code = hourly_codes.at(i)
+                let fill = precip_fill(code)
+                // Scale: precip amount to percentage of chart height (max 80%)
+                let bar_pct = calc.min((p / precip_max) * 80, 80)
+                box(
+                  width: bar_width,
+                  height: bar_pct * 1%,
+                  align(bottom)[
+                    #rect(width: 75%, height: 100%, fill: fill)
+                  ],
+                )
+              }))
+          ]
+
+          // Temperature line overlay using cetz
+          #place(top + left)[
+            #context {
+              let chart_w = measure(box(width: 100%)).width
+              let chart_h = measure(box(height: 100%)).height
+              // Use fixed dimensions for the canvas
+              let w = 680 // approximate width in pt
+              let h = 120 // approximate height in pt
+
+              canvas(length: 1pt, {
+                // Draw temperature line
+                let points = hourly_temps.enumerate().map(((i, t)) => {
+                  let x = (i + 0.5) * (w / 24)
+                  // Map temperature to y (inverted: higher temp = lower y value)
+                  let y_pct = (temp_max - t) / temp_range
+                  let y = y_pct * h * 0.8 + h * 0.1 // 10% padding top/bottom
+                  (x, y)
+                })
+
+                // Draw the line connecting all points
+                for i in range(points.len() - 1) {
+                  let p1 = points.at(i)
+                  let p2 = points.at(i + 1)
+                  draw.line(p1, p2, stroke: 1.5pt + black)
+                }
+
+                // Draw small dots at each point
+                for p in points {
+                  draw.circle(p, radius: 2, fill: white, stroke: 1pt + black)
+                }
+              })
+            }
+          ]
         ]
       ]
 
       // X-axis labels
       #v(0.25em)
-      #stack(
-        dir: ltr,
-        spacing: 0pt,
-        ..range(0, 24, step: 3).map(h => {
-          box(width: bar_width * 3, align(center)[
-            #text(size: 0.7em)[#if h < 10 { "0" }#h]
-          ])
-        }),
-      )
+      #box(width: 100% - 2em)[
+        #stack(
+          dir: ltr,
+          spacing: 0pt,
+          ..range(0, 24, step: 3).map(h => {
+            box(width: bar_width * 3, align(center)[
+              #text(size: 0.7em)[#if h < 10 { "0" }#h]
+            ])
+          }),
+        )
+      ]
     ]
     #line(length: 100%, stroke: 0.5pt + black)
   ],

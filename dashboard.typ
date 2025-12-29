@@ -167,6 +167,16 @@
   // ============================================================================
   [
     #box(width: 100%, height: 100%, inset: (y: 1em))[
+      // Background weather icon (artsy, faded)
+      #place(horizon + left, dx: 25%)[
+        #let icon-size = 220%
+        #box(width: icon-size, height: icon-size, clip: true)[
+          #image(weather_icon(current_code), height: 100%)
+          #place(top + left)[
+            #rect(width: 100%, height: 100%, fill: white.transparentize(15%), stroke: none)
+          ]
+        ]
+      ]
       #grid(
         columns: (1fr, 1fr),
         align: (left + horizon, right + horizon),

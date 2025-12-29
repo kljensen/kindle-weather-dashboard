@@ -212,7 +212,7 @@
         // Left: Date
         [
           #set par(leading: 0pt)
-          #set text(top-edge: "cap-height", bottom-edge: "baseline")
+          #set text(top-edge: "cap-height", bottom-edge: "baseline", fill: luma(170))
           #context {
             let day-text = box(inset: (y: 10pt))[#text(size: 10em, weight: 900)[#today_date.day]]
             let day-width = measure(day-text).width
@@ -229,7 +229,7 @@
           #set par(leading: 0pt)
           #set text(top-edge: "cap-height", bottom-edge: "baseline")
           #context {
-            let temp = box(inset: (y: 10pt))[#text(size: 10em, weight: 900)[#current_temp_f]#text(size: 10em, weight: "light")[°]]
+            let temp = box(inset: (y: 10pt))[#text(size: 10em, weight: 900)[#current_temp_f]#text(size: 10em, weight: "light", fill: luma(100))[°]]
             let temp-width = measure(temp).width
 
             // Spacer matching Saturday's height
@@ -239,7 +239,12 @@
             linebreak()
             box(width: temp-width)[
               #align(left)[
-                #text(size: 2.5em, weight: "light", stretch: 75%)[Hi #today_high° #sym.dot.c Lo #today_low°]
+                #text(size: 2.5em, weight: "light", stretch: 75%)[
+                ~
+                Lo #today_low°
+                #sym.dot.c
+                Hi #today_high°
+                ]
               ]
             ]
           }

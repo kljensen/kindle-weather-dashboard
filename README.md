@@ -2,7 +2,7 @@
 
 A weather dashboard PNG generator optimized for Kindle e-ink displays.
 
-![Dashboard Screenshot](dashboard.png)
+![Dashboard Screenshot](doc/example.png)
 
 ## Goal
 

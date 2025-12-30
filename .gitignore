@@ -1,6 +1,11 @@
 .claude
 dashboard.png
+dashboard-*.png
 .mcp.json
+
+# Proprietary fonts (use open-source fallbacks)
+fonts/
+
 # Generated files
 tmp/
 output/

@@ -12,8 +12,13 @@
 
 #let base-font-size = 16pt
 
+// Font stack: Myriad Pro (proprietary) with open-source fallbacks
+// - Source Sans 3: Adobe's open-source humanist sans (closest to Myriad)
+// - Fira Sans: Mozilla's humanist sans, excellent weight support
+// - PT Sans: Free humanist sans from ParaType
+// - System fallbacks: Helvetica Neue, Helvetica, Arial
 #set text(
-  font: ("Myriad Pro", "Helvetica Neue", "Helvetica", "Arial"),
+  font: ("Myriad Pro", "Source Sans 3", "Source Sans Pro", "Fira Sans", "PT Sans", "Helvetica Neue", "Helvetica", "Arial"),
   size: base-font-size,
   fill: black,
 )

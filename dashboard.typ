@@ -1,7 +1,7 @@
 // Kindle Weather Dashboard
 // 758x1024 pixels for Kindle e-ink display
 
-#import "@preview/cetz:0.3.2": canvas, draw
+#import "@preview/cetz:0.4.2": canvas, draw
 
 #set page(
   width: 758pt,
@@ -77,6 +77,33 @@
   if is_snow(code) { luma(120) } else { black }
 }
 
+// Helper: Get NWS forecast for a given date (YYYY-MM-DD format)
+// Returns the daytime detailedForecast, or shortForecast as fallback
+#let nws_forecast_for_date(date_str) = {
+  if "nws_forecast" not in data or data.nws_forecast == none {
+    return none
+  }
+
+  // Find matching daytime period for this date
+  for period in data.nws_forecast {
+    // Extract date from startTime (format: "2025-12-30T06:00:00-05:00")
+    let start_date = period.startTime.split("T").at(0)
+    if start_date == date_str and period.isDaytime {
+      return period.detailedForecast
+    }
+  }
+
+  // If no daytime match (e.g., today is evening), try first available period for this date
+  for period in data.nws_forecast {
+    let start_date = period.startTime.split("T").at(0)
+    if start_date == date_str {
+      return period.detailedForecast
+    }
+  }
+
+  none
+}
+
 // Helper: Get weather description from WMO code
 #let weather_desc(code) = {
   let descriptions = (
@@ -144,6 +171,13 @@
   )
 }
 
+// Helper: Parse ISO datetime and extract hour as decimal (e.g., "2025-12-29T07:15" -> 7.25)
+#let parse_time_to_hour(iso_str) = {
+  let time_part = iso_str.split("T").at(1)
+  let parts = time_part.split(":")
+  int(parts.at(0)) + int(parts.at(1)) / 60
+}
+
 // Helper: Scale content horizontally to match a target width
 #let scale_to_width(target-width, content) = {
   box(context {
@@ -182,6 +216,37 @@
 
 // Days 0-6 (today through 6 days out)
 #let forecast_days = range(0, 7)
+
+// Calculate global temperature range across all forecast days (for Apple Weather-style bar)
+#let global_temp_min = calc.min(..forecast_days.map(i => data.daily.temperature_2m_min.at(i)))
+#let global_temp_max = calc.max(..forecast_days.map(i => data.daily.temperature_2m_max.at(i)))
+#let global_temp_range = calc.max(global_temp_max - global_temp_min, 1) // Avoid division by zero
+
+// Helper: Create Apple Weather-style temperature range bar
+#let temp_range_bar(day_low, day_high, current_temp: none) = {
+  let bar_height = 10pt
+  let bar_radius = 5pt
+
+  box(width: 100%, height: bar_height, clip: true)[
+    #layout(size => {
+      let w = size.width
+      // Calculate positions in actual points
+      let start_pos = (day_low - global_temp_min) / global_temp_range * w
+      let end_pos = (day_high - global_temp_min) / global_temp_range * w
+      let bar_width = end_pos - start_pos
+
+      // Background slot (full range) - light gray
+      place(left + horizon, rect(width: 100%, height: bar_height, fill: luma(220), radius: bar_radius))
+      // Day's temperature range bar - dark gray
+      place(left + horizon, dx: start_pos, rect(width: bar_width, height: bar_height, fill: luma(80), radius: bar_radius))
+      // Current temperature dot for today
+      if current_temp != none {
+        let dot_pos = (current_temp - global_temp_min) / global_temp_range * w
+        place(left + horizon, dx: dot_pos - 5pt, circle(radius: 5pt, fill: white, stroke: 1.5pt + black))
+      }
+    })
+  ]
+}
 
 // ============================================================================
 // MAIN LAYOUT - Vertical Grid
@@ -379,22 +444,30 @@
   // 7-DAY FORECAST SECTION
   // ============================================================================
   [
-    #box(width: 100%, height: 100%, inset: (y: 1.5em))[
+    #box(width: 100%, height: 100%, inset: (top: 2.5em, bottom: 0em))[
       #grid(
-        columns: (3em, 1fr, auto, auto),
+        columns: (1.75em, 3em, 5em, 1fr),
         rows: (1fr,) * 7,
-        align: (left + horizon, left + horizon, right + horizon, right + horizon),
-        column-gutter: 1em,
+        align: (center + horizon, center + horizon, horizon, left + horizon),
+        column-gutter: 0.75em,
         row-gutter: 0.25em,
-        // Each row: Day name, Icon, High temp, Low temp
+        // Each row: Day | Icon | Graph | Text
         ..forecast_days.map(i => {
           let high = calc.round(data.daily.temperature_2m_max.at(i))
           let low = calc.round(data.daily.temperature_2m_min.at(i))
+          let code = data.daily.weather_code.at(i)
+          let date_str = data.daily.time.at(i)
+          // Get NWS forecast text, fallback to WMO description
+          let nws_text = nws_forecast_for_date(date_str)
+          let desc = if nws_text != none { nws_text } else { weather_desc(code) }
+          // Only show current temp dot on today (i == 0)
+          let current = if i == 0 { current_temp_f } else { none }
+
           (
-            text(size: 0.875em, weight: "medium")[#day_name(data.daily.time.at(i))],
-            image(weather_icon(data.daily.weather_code.at(i)), height: 100%),
-            text(size: 1em, weight: "bold")[#high°],
-            text(size: 0.875em, fill: luma(100))[#low°],
+            text(size: 1em, weight: "bold")[#day_name(date_str)],
+            image(weather_icon(code), height: 100%),
+            temp_range_bar(low, high, current_temp: current),
+            text(size: 0.85em, fill: luma(40))[#desc],
           )
         }).flatten(),
       )

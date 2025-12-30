@@ -222,30 +222,37 @@
 #let global_temp_max = calc.max(..forecast_days.map(i => data.daily.temperature_2m_max.at(i)))
 #let global_temp_range = calc.max(global_temp_max - global_temp_min, 1) // Avoid division by zero
 
-// Helper: Create Apple Weather-style temperature range bar
+// Helper: Create Apple Weather-style temperature range bar with labels
 #let temp_range_bar(day_low, day_high, current_temp: none) = {
   let bar_height = 10pt
   let bar_radius = 5pt
 
-  box(width: 100%, height: bar_height, clip: true)[
-    #layout(size => {
-      let w = size.width
-      // Calculate positions in actual points
-      let start_pos = (day_low - global_temp_min) / global_temp_range * w
-      let end_pos = (day_high - global_temp_min) / global_temp_range * w
-      let bar_width = end_pos - start_pos
+  grid(
+    columns: (auto, 1fr, auto),
+    align: (right + horizon, center + horizon, left + horizon),
+    column-gutter: 6pt,
+    text(size: 0.9em, weight: "medium")[#int(day_low)°],
+    box(width: 100%, height: bar_height, clip: true)[
+      #layout(size => {
+        let w = size.width
+        // Calculate positions in actual points
+        let start_pos = (day_low - global_temp_min) / global_temp_range * w
+        let end_pos = (day_high - global_temp_min) / global_temp_range * w
+        let bar_width = end_pos - start_pos
 
-      // Background slot (full range) - light gray
-      place(left + horizon, rect(width: 100%, height: bar_height, fill: luma(220), radius: bar_radius))
-      // Day's temperature range bar - dark gray
-      place(left + horizon, dx: start_pos, rect(width: bar_width, height: bar_height, fill: luma(80), radius: bar_radius))
-      // Current temperature dot for today
-      if current_temp != none {
-        let dot_pos = (current_temp - global_temp_min) / global_temp_range * w
-        place(left + horizon, dx: dot_pos - 5pt, circle(radius: 5pt, fill: white, stroke: 1.5pt + black))
-      }
-    })
-  ]
+        // Background slot (full range) - light gray
+        place(left + horizon, rect(width: 100%, height: bar_height, fill: luma(220), radius: bar_radius))
+        // Day's temperature range bar - dark gray
+        place(left + horizon, dx: start_pos, rect(width: bar_width, height: bar_height, fill: luma(80), radius: bar_radius))
+        // Current temperature dot for today
+        if current_temp != none {
+          let dot_pos = (current_temp - global_temp_min) / global_temp_range * w
+          place(left + horizon, dx: dot_pos - 5pt, circle(radius: 5pt, fill: white, stroke: 1.5pt + black))
+        }
+      })
+    ],
+    text(size: 0.9em, weight: "medium")[#int(day_high)°],
+  )
 }
 
 // ============================================================================
@@ -446,7 +453,7 @@
   [
     #box(width: 100%, height: 100%, inset: (top: 2.5em, bottom: 0em))[
       #grid(
-        columns: (1.75em, 3em, 5em, 1fr),
+        columns: (1.75em, 3em, 11em, 1fr),
         rows: (1fr,) * 7,
         align: (center + horizon, center + horizon, horizon, left + horizon),
         column-gutter: 0.75em,

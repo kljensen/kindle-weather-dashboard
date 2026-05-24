@@ -20,4 +20,11 @@ typst compile "$SCRIPT_DIR/dashboard.typ" "$OUTPUT_PNG" \
   --ppi "${TYPST_PPI:-72}" \
   --font-path "$SCRIPT_DIR/fonts"
 
+# Kindle eips handles plain 8-bit grayscale PNGs much more reliably than RGBA.
+if command -v magick >/dev/null 2>&1; then
+  TMP_PNG="${OUTPUT_PNG}.tmp.png"
+  magick "$OUTPUT_PNG" -alpha remove -alpha off -colorspace Gray -depth 8 -type Grayscale "$TMP_PNG"
+  mv "$TMP_PNG" "$OUTPUT_PNG"
+fi
+
 echo "Done: $OUTPUT_PNG"

@@ -109,6 +109,33 @@
   none
 }
 
+// Helper: Truncate prose at a word boundary and append an ellipsis.
+#let truncate_words(s, max) = {
+  if s.len() <= max {
+    return s
+  }
+
+  let out = ""
+  for word in s.split(" ") {
+    let candidate = if out == "" { word } else { out + " " + word }
+    if candidate.len() <= max - 1 {
+      out = candidate
+    }
+  }
+
+  for suffix in (",", ";", " a", " an", " the", " and", " or", " with", " as", " to", " of") {
+    if out.ends-with(suffix) {
+      out = out.slice(0, out.len() - suffix.len())
+    }
+  }
+
+  if out == "" {
+    s.slice(0, max - 1) + "…"
+  } else {
+    out + "…"
+  }
+}
+
 // Helper: Get weather description from WMO code
 #let weather_desc(code) = {
   let descriptions = (
@@ -472,6 +499,7 @@
           // Get NWS forecast text, fallback to WMO description
           let nws_text = nws_forecast_for_date(date_str)
           let desc = if nws_text != none { nws_text } else { weather_desc(code) }
+          let desc = truncate_words(desc, 220)
           // Only show current temp dot on today (i == 0)
           let current = if i == 0 { current_temp_f } else { none }
 
@@ -479,7 +507,7 @@
             text(size: 1em, weight: "bold")[#day_name(date_str)],
             image(weather_icon(code), height: 100%),
             temp_range_bar(low, high, current_temp: current),
-            text(size: 0.85em, fill: luma(40))[#desc],
+            par(leading: 0.25em, text(size: 0.78em, fill: luma(35))[#desc]),
           )
         }).flatten(),
       )

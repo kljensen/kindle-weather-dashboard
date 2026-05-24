@@ -338,7 +338,7 @@
             temp
             linebreak()
             box(width: temp-width)[
-              #align(left)[
+              #align(center)[
                 #text(size: 2.2em, weight: "light", stretch: 60%)[#box[Lo #today_low° #sym.dot.c Hi #today_high°]]
               ]
             ]

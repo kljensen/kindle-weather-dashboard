@@ -17,7 +17,7 @@ mv "${DATA_FILE}.tmp" "$DATA_FILE"
 echo "Generating dashboard..."
 typst compile "$SCRIPT_DIR/dashboard.typ" "$OUTPUT_PNG" \
   --format png \
-  --ppi "${TYPST_PPI:-150}" \
+  --ppi "${TYPST_PPI:-72}" \
   --font-path "$SCRIPT_DIR/fonts"
 
 echo "Done: $OUTPUT_PNG"

@@ -9,6 +9,9 @@ fonts/
 # Generated files
 tmp/
 output/
+.typst-cache/
+weather_data.json
+nws_forecast.json
 
 # Environment
 .env

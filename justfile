@@ -9,12 +9,12 @@ default:
 
 # Generate the weather dashboard PNG
 generate:
-    ./scripts/generate-dashboard.sh
+    ./generate.sh
 
 # Start local HTTP server to serve the dashboard
 serve port="8080":
     @echo "Serving dashboard at http://localhost:{{port}}/dashboard.png"
-    @cd output && python3 -m http.server {{port}}
+    @python3 -m http.server --directory . {{port}}
 
 # Fetch weather data only (for debugging)
 fetch:
@@ -22,4 +22,4 @@ fetch:
 
 # Clean generated files
 clean:
-    rm -rf tmp/* output/*
+    rm -rf tmp/* output/* .typst-cache dashboard.png dashboard-*.png weather_data.json nws_forecast.json

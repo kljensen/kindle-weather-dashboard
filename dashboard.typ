@@ -12,9 +12,9 @@
 
 #let base-font-size = 16pt
 
-// Font stack: Fira Sans in production, PT Sans locally, with Typst's built-in fallback.
+// Font stack: Myriad Pro locally, Fira Sans in production, with Typst's built-in fallback.
 #set text(
-  font: ("Fira Sans", "PT Sans", "Libertinus Serif"),
+  font: ("Myriad Pro", "Fira Sans", "PT Sans", "Libertinus Serif"),
   size: base-font-size,
   fill: black,
 )
@@ -329,19 +329,27 @@
           #set par(leading: 0pt)
           #set text(top-edge: "cap-height", bottom-edge: "baseline")
           #context {
-            let temp = box(inset: (y: 10pt))[#text(size: 10em, weight: 900)[#current_temp_f]#text(size: 10em, weight: "light", fill: luma(100))[°]]
-            let temp-width = measure(temp).width
+            let temp-digits = text(size: 10em, weight: 900)[#current_temp_f]
+            let temp-degree = text(size: 10em, weight: "light", fill: luma(100))[°]
+            let temp-digits-width = measure(temp-digits).width
+            let temp-degree-width = measure(temp-degree).width
+            let temp-width = temp-digits-width + temp-degree-width
+            let temp-summary = text(size: 2.2em, weight: "light", stretch: 60%)[#box[Lo #today_low° #sym.dot.c Hi #today_high°]]
 
             // Spacer matching Saturday's height
             hide(scale_to_width(temp-width, text(size: 3em, weight: "light")[Saturday]))
             linebreak()
-            temp
-            linebreak()
-            box(width: temp-width)[
-              #align(center)[
-                #text(size: 2.2em, weight: "light", stretch: 60%)[#box[Lo #today_low° #sym.dot.c Hi #today_high°]]
-              ]
-            ]
+            grid(
+              columns: (temp-digits-width, temp-degree-width),
+              rows: (auto, auto),
+              column-gutter: 0pt,
+              row-gutter: 0pt,
+              align: (right + horizon, left + horizon),
+              box(inset: (y: 10pt))[#temp-digits],
+              box(inset: (y: 10pt))[#temp-degree],
+              box(width: temp-width)[#align(center)[#move(dx: 1.8em)[#temp-summary]]],
+              [],
+            )
           }
         ],
       )

@@ -12,9 +12,9 @@
 
 #let base-font-size = 16pt
 
-// Font stack: Fira Sans in production, with Typst's built-in Libertinus fallback.
+// Font stack: Fira Sans in production, PT Sans locally, with Typst's built-in fallback.
 #set text(
-  font: ("Fira Sans", "Libertinus Serif"),
+  font: ("Fira Sans", "PT Sans", "Libertinus Serif"),
   size: base-font-size,
   fill: black,
 )
@@ -339,12 +339,7 @@
             linebreak()
             box(width: temp-width)[
               #align(left)[
-                #text(size: 2.5em, weight: "light", stretch: 75%)[
-                ~
-                Lo #today_low°
-                #sym.dot.c
-                Hi #today_high°
-                ]
+                #text(size: 2.2em, weight: "light", stretch: 60%)[#box[Lo #today_low° #sym.dot.c Hi #today_high°]]
               ]
             ]
           }
